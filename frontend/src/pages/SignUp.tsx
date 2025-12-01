@@ -1,40 +1,69 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { InputField } from '../components/InputField';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { InputField } from '../components/InputField';
+import { useAuth } from '../contexts/AuthContext';
 
 export const SignUp: React.FC = () => {
-  const navigate = useNavigate();
+  const { register, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
+
+  const [error, setError] = useState<{ [key: string]: string[] }>({});
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError({});
 
+    // Client-side validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError({
+        password2: ['Passwords do not match'],
+      });
       return;
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError({
+        password: ['Password must be at least 8 characters'],
+      });
       return;
     }
 
     setLoading(true);
 
-    // Mock registration
-    setTimeout(() => {
+    try {
+      await register({
+        email: formData.email,
+        password: formData.password,
+        password2: formData.confirmPassword,
+        first_name: formData.firstName || undefined,
+        last_name: formData.lastName || undefined,
+      });
+    } catch (err) {
+      if (typeof err === 'object' && err !== null) {
+        // Field-specific errors from backend
+        setError(err as { [key: string]: string[] });
+      } else {
+        // General error
+        setError({
+          non_field_errors: [err instanceof Error ? err.message : 'Registration failed'],
+        });
+      }
+    } finally {
       setLoading(false);
-      navigate('/dashboard');
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,19 +88,28 @@ export const SignUp: React.FC = () => {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+          {Object.keys(error).length > 0 && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
+              {Object.entries(error).map(([field, messages]) => (
+                <p key={field}>{Array.isArray(messages) ? messages.join(', ') : messages}</p>
+              ))}
             </div>
           )}
           <div className="space-y-4">
             <InputField
-              label="Full name"
-              name="name"
+              label="First name"
+              name="firstName"
               type="text"
-              autoComplete="name"
-              required
-              value={formData.name}
+              autoComplete="given-name"
+              value={formData.firstName}
+              onChange={handleChange}
+            />
+            <InputField
+              label="Last name"
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+              value={formData.lastName}
               onChange={handleChange}
             />
             <InputField

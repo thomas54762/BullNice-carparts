@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../components/PageHeader';
-import { InputField } from '../components/InputField';
 import { Button } from '../components/Button';
-import { useVehicleInfo } from '../hooks/useVehicleInfo';
+import { InputField } from '../components/InputField';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { PageHeader } from '../components/PageHeader';
+import { useVehicleInfo } from '../hooks/useVehicleInfo';
 
 export const LicensePlateSearch: React.FC = () => {
   const navigate = useNavigate();
@@ -57,19 +57,19 @@ export const LicensePlateSearch: React.FC = () => {
               error={errors.plate}
               helperText="Enter the vehicle's license plate number"
             />
-            
+
             {vehicleLoading && (
               <div className="mt-2">
                 <LoadingSkeleton lines={2} />
               </div>
             )}
-            
+
             {vehicleError && (
               <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">{vehicleError}</p>
               </div>
             )}
-            
+
             {vehicleInfo && !vehicleLoading && (
               <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm font-medium text-green-900 mb-2">Vehicle Found:</p>

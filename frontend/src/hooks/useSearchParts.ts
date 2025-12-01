@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { searchService } from '../services/searchService';
+import { useCallback, useState } from 'react';
 import type { SearchResultItem } from '../components/SearchCard';
+import { searchService } from '../services/searchService';
 
 export const useSearchParts = () => {
   const [results, setResults] = useState<SearchResultItem[]>([]);
@@ -10,7 +10,7 @@ export const useSearchParts = () => {
   const search = useCallback(async (licensePlate: string, partName: string) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const searchResults = await searchService.searchParts(licensePlate, partName);
       setResults(searchResults);

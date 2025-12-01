@@ -20,7 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
             BullNice
           </Link>
         </div>
-        
+
         <div className="flex items-center gap-4">
           {user ? (
             <div className="relative">
@@ -36,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                   <Link

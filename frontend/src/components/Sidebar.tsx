@@ -20,7 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ items }) => {
         <h2 className="text-xl font-bold text-gray-900">BullNice</h2>
         <p className="text-sm text-gray-500">Carparts Finder</p>
       </div>
-      
+
       <nav className="px-4">
         {items.map((item) => {
           const isActive = location.pathname === item.path;

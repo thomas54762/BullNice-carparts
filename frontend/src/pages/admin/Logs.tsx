@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Table } from '../../components/Table';
 import { Badge } from '../../components/Badge';
 import { InputField } from '../../components/InputField';
+import { Table } from '../../components/Table';
 
 interface LogEntry {
   id: string;

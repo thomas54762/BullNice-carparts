@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 
 const adminTabs = [
@@ -21,7 +21,7 @@ export const Admin: React.FC = () => {
         <div className="border-b border-gray-200">
           <nav className="flex -mb-px">
             {adminTabs.map((tab) => {
-              const isActive = location.pathname === tab.path || 
+              const isActive = location.pathname === tab.path ||
                 (tab.path === '/admin/integrations' && location.pathname === '/admin');
               return (
                 <Link

@@ -1,5 +1,5 @@
-import resultsData from '../mock/results.json';
 import type { SearchResultItem } from '../components/SearchCard';
+import resultsData from '../mock/results.json';
 
 // Simulate API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -8,7 +8,7 @@ export const searchService = {
   async searchParts(_licensePlate: string, _partName: string): Promise<SearchResultItem[]> {
     // Simulate network delay
     await delay(1200);
-    
+
     // Return top 10 results sorted by match score, delivery speed, and price
     const sortedResults = [...resultsData]
       .sort((a, b) => {
@@ -24,10 +24,10 @@ export const searchService = {
         return a.price - b.price;
       })
       .slice(0, 10);
-    
+
     return sortedResults as SearchResultItem[];
   },
-  
+
   async getSearchHistory(): Promise<any[]> {
     await delay(500);
     const historyData = await import('../mock/searchHistory.json');

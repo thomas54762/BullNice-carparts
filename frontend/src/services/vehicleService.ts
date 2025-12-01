@@ -16,14 +16,14 @@ export const vehicleService = {
   async getVehicleInfo(plate: string): Promise<VehicleInfo | null> {
     // Simulate network delay
     await delay(800);
-    
+
     const normalizedPlate = plate.toUpperCase().replace(/\s+/g, '');
     const vehicle = (vehicleData as Record<string, VehicleInfo>)[normalizedPlate];
-    
+
     if (!vehicle) {
       return null;
     }
-    
+
     return vehicle;
   },
 };

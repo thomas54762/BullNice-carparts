@@ -1,22 +1,30 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { InputField } from '../components/InputField';
 import { Button } from '../components/Button';
+import { InputField } from '../components/InputField';
+import { getErrorMessage } from '../utils/api';
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
 
-    // Mock password reset
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Note: Backend needs to implement password reset endpoint
+      // For now, we'll show a message that this feature is not yet implemented
+      // await api.post('/accounts/password-reset/', { email });
       setSubmitted(true);
-    }, 1000);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -33,7 +41,11 @@ export const ForgotPassword: React.FC = () => {
               Check your email
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              We've sent a password reset link to {email}
+              {email ? (
+                <>We've sent a password reset link to {email}</>
+              ) : (
+                <>Password reset functionality is coming soon. Please contact support for assistance.</>
+              )}
             </p>
             <div className="mt-6">
               <Link
@@ -61,6 +73,11 @@ export const ForgotPassword: React.FC = () => {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
           <InputField
             label="Email address"
             name="email"

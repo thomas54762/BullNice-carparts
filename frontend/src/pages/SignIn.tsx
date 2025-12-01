@@ -1,27 +1,46 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { InputField } from '../components/InputField';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { InputField } from '../components/InputField';
+import { useAuth } from '../contexts/AuthContext';
 
 export const SignIn: React.FC = () => {
-  const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState<{ [key: string]: string[] }>({});
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError({});
     setLoading(true);
 
-    // Mock authentication
-    setTimeout(() => {
+    try {
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
+    } catch (err) {
+      if (typeof err === 'object' && err !== null) {
+        // Field-specific errors
+        setError(err as { [key: string]: string[] });
+      } else {
+        // General error
+        setError({
+          non_field_errors: [err instanceof Error ? err.message : 'Login failed'],
+        });
+      }
+    } finally {
       setLoading(false);
-      navigate('/dashboard');
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,9 +65,11 @@ export const SignIn: React.FC = () => {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+          {Object.keys(error).length > 0 && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
+              {Object.entries(error).map(([field, messages]) => (
+                <p key={field}>{Array.isArray(messages) ? messages.join(', ') : messages}</p>
+              ))}
             </div>
           )}
           <div className="space-y-4">

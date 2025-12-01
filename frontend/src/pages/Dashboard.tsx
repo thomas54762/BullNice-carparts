@@ -1,25 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../components/PageHeader';
-import { InputField } from '../components/InputField';
 import { Button } from '../components/Button';
+import { InputField } from '../components/InputField';
+import { PageHeader } from '../components/PageHeader';
+import { searchService } from '../services/searchService';
+
+interface RecentSearch {
+  plate: string;
+  part: string;
+  date: string;
+}
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [licensePlate, setLicensePlate] = useState('');
   const [partName, setPartName] = useState('');
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalSearches: 0,
+    partsFound: 0,
+    avgMatchScore: 0,
+  });
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const history = await searchService.getSearchHistory();
+        // Transform history data to recent searches format
+        const recent = history.slice(0, 3).map((item: any) => ({
+          plate: item.licensePlate || '',
+          part: item.partName || '',
+          date: item.date || '',
+        }));
+        setRecentSearches(recent);
+
+        // Calculate stats from history
+        const totalSearches = history.length;
+        const partsFound = history.reduce((sum: number, item: any) => sum + (item.resultsCount || 0), 0);
+        const avgMatchScore = totalSearches > 0 ? Math.round(partsFound / totalSearches) : 0;
+
+        setStats({
+          totalSearches,
+          partsFound,
+          avgMatchScore,
+        });
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
 
   const handleQuickSearch = () => {
     if (licensePlate && partName) {
       navigate(`/results?plate=${encodeURIComponent(licensePlate)}&part=${encodeURIComponent(partName)}`);
     }
   };
-
-  const recentSearches = [
-    { plate: 'HR-312-G', part: 'Brake Pads', date: '2 hours ago' },
-    { plate: 'DL-1234-A', part: 'Air Filter', date: '1 day ago' },
-    { plate: 'HR-312-G', part: 'Oil Filter', date: '2 days ago' },
-  ];
 
   return (
     <div>
@@ -57,7 +97,13 @@ export const Dashboard: React.FC = () => {
       {/* Recent Searches */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Searches</h2>
-        {recentSearches.length > 0 ? (
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-gray-200 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        ) : recentSearches.length > 0 ? (
           <div className="space-y-3">
             {recentSearches.map((search, index) => (
               <div
@@ -86,15 +132,27 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Total Searches</h3>
-          <p className="text-3xl font-bold text-gray-900">24</p>
+          {loading ? (
+            <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+          ) : (
+            <p className="text-3xl font-bold text-gray-900">{stats.totalSearches}</p>
+          )}
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Parts Found</h3>
-          <p className="text-3xl font-bold text-gray-900">156</p>
+          {loading ? (
+            <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+          ) : (
+            <p className="text-3xl font-bold text-gray-900">{stats.partsFound}</p>
+          )}
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Avg. Match Score</h3>
-          <p className="text-3xl font-bold text-gray-900">87%</p>
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Avg. Results per Search</h3>
+          {loading ? (
+            <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+          ) : (
+            <p className="text-3xl font-bold text-gray-900">{stats.avgMatchScore}</p>
+          )}
         </div>
       </div>
     </div>

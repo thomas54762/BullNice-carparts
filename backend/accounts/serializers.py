@@ -76,6 +76,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             refresh = self.get_token(user)
             attrs["refresh"] = str(refresh)
             attrs["access"] = str(refresh.access_token)
-            attrs["user"] = user
+            # Store user in context for potential use in view, but don't include in response
+            # The user object is not JSON serializable, so we remove it from attrs
+            # If needed, the view can access it via serializer.validated_data or context
 
         return attrs

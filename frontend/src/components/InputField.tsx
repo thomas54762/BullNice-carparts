@@ -15,7 +15,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   ...props
 }) => {
   const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, '-')}`;
-  
+
   return (
     <div className="w-full">
       {label && (

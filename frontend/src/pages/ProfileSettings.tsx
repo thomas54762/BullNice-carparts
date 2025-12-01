@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { PageHeader } from '../components/PageHeader';
-import { InputField } from '../components/InputField';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../components/Button';
+import { InputField } from '../components/InputField';
+import { PageHeader } from '../components/PageHeader';
+import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
+import { getErrorMessage, getFieldErrors } from '../utils/api';
 
 export const ProfileSettings: React.FC = () => {
+  const { user, updateUser, refreshUser } = useAuth();
   const [userInfo, setUserInfo] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+1 234 567 8900',
+    firstName: '',
+    lastName: '',
+    email: '',
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -18,7 +22,22 @@ export const ProfileSettings: React.FC = () => {
 
   const [saving, setSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Load user data
+  useEffect(() => {
+    if (user) {
+      setUserInfo({
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        email: user.email,
+      });
+      setLoading(false);
+    } else {
+      refreshUser().finally(() => setLoading(false));
+    }
+  }, [user, refreshUser]);
 
   const handleUserInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserInfo({
@@ -39,11 +58,24 @@ export const ProfileSettings: React.FC = () => {
     setSaving(true);
     setMessage(null);
 
-    // Mock save
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      const updatedUser = await authService.updateProfile({
+        first_name: userInfo.firstName,
+        last_name: userInfo.lastName,
+      });
+      updateUser(updatedUser);
       setMessage({ type: 'success', text: 'Profile updated successfully' });
-    }, 1000);
+    } catch (error) {
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        const errorMessages = Object.values(fieldErrors).flat();
+        setMessage({ type: 'error', text: errorMessages.join(', ') });
+      } else {
+        setMessage({ type: 'error', text: getErrorMessage(error) });
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -62,17 +94,48 @@ export const ProfileSettings: React.FC = () => {
 
     setPasswordSaving(true);
 
-    // Mock password change
-    setTimeout(() => {
+    try {
+      // Note: Backend needs to implement password change endpoint
+      // For now, show a message that this feature is not yet implemented
+      setMessage({
+        type: 'error',
+        text: 'Password change functionality is not yet implemented. Please contact support.',
+      });
+      // await authService.changePassword({
+      //   current_password: passwordForm.currentPassword,
+      //   new_password: passwordForm.newPassword,
+      // });
+    } catch (error) {
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        const errorMessages = Object.values(fieldErrors).flat();
+        setMessage({ type: 'error', text: errorMessages.join(', ') });
+      } else {
+        setMessage({ type: 'error', text: getErrorMessage(error) });
+      }
+    } finally {
       setPasswordSaving(false);
-      setMessage({ type: 'success', text: 'Password changed successfully' });
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       });
-    }, 1000);
+    }
   };
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Profile Settings" />
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -85,25 +148,30 @@ export const ProfileSettings: React.FC = () => {
         {/* User Information */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">User Information</h2>
-          
+
           {message && (
-            <div className={`mb-4 p-3 rounded ${
-              message.type === 'success' 
-                ? 'bg-green-50 border border-green-200 text-green-700' 
+            <div className={`mb-4 p-3 rounded ${message.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-700'
                 : 'bg-red-50 border border-red-200 text-red-700'
-            }`}>
+              }`}>
               {message.text}
             </div>
           )}
 
           <form onSubmit={handleSaveUserInfo} className="space-y-4">
             <InputField
-              label="Full Name"
-              name="name"
+              label="First Name"
+              name="firstName"
               type="text"
-              value={userInfo.name}
+              value={userInfo.firstName}
               onChange={handleUserInfoChange}
-              required
+            />
+            <InputField
+              label="Last Name"
+              name="lastName"
+              type="text"
+              value={userInfo.lastName}
+              onChange={handleUserInfoChange}
             />
             <InputField
               label="Email"
@@ -112,13 +180,8 @@ export const ProfileSettings: React.FC = () => {
               value={userInfo.email}
               onChange={handleUserInfoChange}
               required
-            />
-            <InputField
-              label="Phone Number"
-              name="phone"
-              type="tel"
-              value={userInfo.phone}
-              onChange={handleUserInfoChange}
+              disabled
+              helperText="Email cannot be changed"
             />
             <div className="flex justify-end">
               <Button type="submit" isLoading={saving}>
@@ -131,7 +194,7 @@ export const ProfileSettings: React.FC = () => {
         {/* Change Password */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-          
+
           <form onSubmit={handleChangePassword} className="space-y-4">
             <InputField
               label="Current Password"

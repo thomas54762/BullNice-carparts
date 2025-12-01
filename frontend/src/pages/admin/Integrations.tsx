@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Button } from '../../components/Button';
-import { Table } from '../../components/Table';
 import { Badge } from '../../components/Badge';
-import { Modal } from '../../components/Modal';
+import { Button } from '../../components/Button';
 import { InputField } from '../../components/InputField';
+import { Modal } from '../../components/Modal';
+import { Table } from '../../components/Table';
 
 interface Integration {
   id: string;
@@ -70,8 +70,8 @@ export const Integrations: React.FC = () => {
   const handleSave = () => {
     if (editingIntegration) {
       // Update existing
-      setIntegrations(integrations.map(i => 
-        i.id === editingIntegration.id 
+      setIntegrations(integrations.map(i =>
+        i.id === editingIntegration.id
           ? { ...i, ...formData }
           : i
       ));

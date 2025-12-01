@@ -1,7 +1,9 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
+import { Sidebar } from '../components/Sidebar';
+import { ProtectedRoute } from '../components/ProtectedRoute';
+import { useAuth } from '../contexts/AuthContext';
 
 const sidebarItems = [
   {
@@ -44,21 +46,34 @@ const sidebarItems = [
 ];
 
 export const DashboardLayout: React.FC = () => {
-  const mockUser = {
-    name: 'John Doe',
-    email: 'john@example.com',
-  };
+  const { user, logout } = useAuth();
+
+  const userDisplayName = user
+    ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email
+    : 'User';
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar items={sidebarItems} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar user={mockUser} />
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
-        </main>
+    <ProtectedRoute>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar items={sidebarItems} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar
+            user={
+              user
+                ? {
+                    name: userDisplayName,
+                    email: user.email,
+                  }
+                : undefined
+            }
+            onLogout={logout}
+          />
+          <main className="flex-1 overflow-y-auto p-6">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 };
 

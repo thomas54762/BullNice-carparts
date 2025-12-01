@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { vehicleService } from '../services/vehicleService';
+import { useEffect, useState } from 'react';
 import type { VehicleInfo } from '../services/vehicleService';
+import { vehicleService } from '../services/vehicleService';
 
 export const useVehicleInfo = (plate: string | null) => {
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null);
@@ -17,7 +17,7 @@ export const useVehicleInfo = (plate: string | null) => {
     const fetchVehicleInfo = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const info = await vehicleService.getVehicleInfo(plate);
         if (info) {

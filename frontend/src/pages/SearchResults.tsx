@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '../components/Button';
+import { EmptyState } from '../components/EmptyState';
+import { CardSkeleton } from '../components/LoadingSkeleton';
 import { PageHeader } from '../components/PageHeader';
 import { SearchCard } from '../components/SearchCard';
-import { CardSkeleton } from '../components/LoadingSkeleton';
-import { EmptyState } from '../components/EmptyState';
-import { Button } from '../components/Button';
 import { useSearchParts } from '../hooks/useSearchParts';
 
 export const SearchResults: React.FC = () => {

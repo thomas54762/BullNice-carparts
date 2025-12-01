@@ -51,13 +51,13 @@ export const SearchCard: React.FC<SearchCardProps> = ({
               <Badge variant="success">{item.deliverySpeed}/10 Speed</Badge>
             </div>
           </div>
-          
+
           <p className="text-sm text-gray-600 mb-2">
             <span className="font-medium">Part #:</span> {item.partNumber}
           </p>
-          
+
           <p className="text-gray-700 mb-4 line-clamp-2">{item.description}</p>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <div className="flex items-center gap-4 mb-2">
@@ -72,7 +72,7 @@ export const SearchCard: React.FC<SearchCardProps> = ({
                 Supplier: {item.supplier}
               </p>
             </div>
-            
+
             <Button
               variant="outline"
               onClick={handleViewSource}
