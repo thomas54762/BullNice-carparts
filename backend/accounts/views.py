@@ -1,4 +1,9 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -8,6 +13,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .serializers import (
     CustomTokenObtainPairSerializer,
+    PasswordChangeSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     UserRegistrationSerializer,
     UserSerializer,
 )
@@ -192,3 +200,125 @@ def get_user_profile(request):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="Change user password",
+    description="Change the password for the currently authenticated user. Requires current password verification.",
+    request=PasswordChangeSerializer,
+    responses={
+        200: OpenApiResponse(
+            description="Password changed successfully.",
+            examples={
+                "application/json": {
+                    "message": "Password changed successfully.",
+                }
+            },
+        ),
+        400: OpenApiResponse(description="Invalid input data or incorrect current password."),
+        401: OpenApiResponse(
+            description="Authentication credentials were not provided."
+        ),
+    },
+    tags=["User Profile"],
+)
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def change_password(request):
+    """Change user password."""
+    serializer = PasswordChangeSerializer(
+        data=request.data, context={"request": request}
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(
+        {"message": "Password changed successfully."},
+        status=status.HTTP_200_OK,
+    )
+
+
+@extend_schema(
+    summary="Request password reset",
+    description="Request a password reset link to be sent to the user's email address.",
+    request=PasswordResetRequestSerializer,
+    responses={
+        200: OpenApiResponse(
+            description="Password reset email sent successfully (if email exists).",
+            examples={
+                "application/json": {
+                    "message": "If the email exists, a password reset link has been sent.",
+                }
+            },
+        ),
+        400: OpenApiResponse(description="Invalid email address."),
+    },
+    tags=["Authentication"],
+)
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def password_reset_request(request):
+    """Request password reset."""
+    serializer = PasswordResetRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    email = serializer.validated_data["email"]
+    User = get_user_model()
+
+    try:
+        user = User.objects.get(email=email, is_active=True)
+        # Generate reset token
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_token = f"{uid}.{token}"
+
+        # Create reset URL
+        frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:5173")
+        reset_url = f"{frontend_url}/reset-password?token={reset_token}"
+
+        # Send email
+        send_mail(
+            subject="Password Reset Request",
+            message=f"Click the following link to reset your password:\n\n{reset_url}\n\nThis link will expire in 1 hour.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+    except User.DoesNotExist:
+        # Don't reveal if email exists or not for security
+        pass
+
+    # Always return success message to prevent email enumeration
+    return Response(
+        {"message": "If the email exists, a password reset link has been sent."},
+        status=status.HTTP_200_OK,
+    )
+
+
+@extend_schema(
+    summary="Confirm password reset",
+    description="Reset the user's password using the token from the reset email.",
+    request=PasswordResetConfirmSerializer,
+    responses={
+        200: OpenApiResponse(
+            description="Password reset successfully.",
+            examples={
+                "application/json": {
+                    "message": "Password has been reset successfully.",
+                }
+            },
+        ),
+        400: OpenApiResponse(description="Invalid or expired token."),
+    },
+    tags=["Authentication"],
+)
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def password_reset_confirm(request):
+    """Confirm password reset."""
+    serializer = PasswordResetConfirmSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(
+        {"message": "Password has been reset successfully."},
+        status=status.HTTP_200_OK,
+    )

@@ -43,6 +43,95 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "date_joined", "is_active")
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    """Serializer for password change."""
+
+    current_password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(write_only=True, required=True, min_length=8)
+
+    def validate_current_password(self, value):
+        """Validate that the current password is correct."""
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value
+
+    def validate_new_password(self, value):
+        """Validate the new password."""
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        return value
+
+    def save(self):
+        """Update the user's password."""
+        user = self.context["request"].user
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """Serializer for password reset request."""
+
+    email = serializers.EmailField(required=True)
+
+    def validate_email(self, value):
+        """Check if user exists with this email."""
+        try:
+            user = User.objects.get(email=value)
+            if not user.is_active:
+                raise serializers.ValidationError("User account is inactive.")
+        except User.DoesNotExist:
+            # Don't reveal if email exists or not for security
+            pass
+        return value
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """Serializer for password reset confirmation."""
+
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(write_only=True, required=True, min_length=8)
+
+    def validate_new_password(self, value):
+        """Validate the new password."""
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        return value
+
+    def validate_token(self, value):
+        """Validate the reset token."""
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_decode
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        try:
+            # Decode the user ID from the token
+            uid = urlsafe_base64_decode(value.split(".")[0]).decode()
+            user = User.objects.get(pk=uid)
+            # Verify the token
+            if not default_token_generator.check_token(user, value.split(".")[1]):
+                raise serializers.ValidationError("Invalid or expired reset token.")
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError("Invalid reset token.")
+        return value
+
+    def save(self):
+        """Reset the user's password."""
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_decode
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        token_parts = self.validated_data["token"].split(".")
+        uid = urlsafe_base64_decode(token_parts[0]).decode()
+        user = User.objects.get(pk=uid)
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom token serializer that uses email instead of username."""
 

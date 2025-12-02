@@ -85,7 +85,7 @@ api.interceptors.response.use(
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
         // Skip token refresh for certain endpoints
-        const skipRefreshPaths = ['/accounts/login/', '/accounts/register/', '/accounts/token/refresh/'];
+        const skipRefreshPaths = ['/accounts/login/', '/accounts/register/', '/accounts/token/refresh/', '/accounts/password-reset/'];
         const shouldSkipRefresh = originalRequest?.url && skipRefreshPaths.some(path => originalRequest.url?.includes(path));
 
         // If error is 401 and we haven't tried to refresh yet
@@ -129,8 +129,9 @@ api.interceptors.response.use(
                 processQueue(refreshError as AxiosError, null);
                 isRefreshing = false;
 
-                // Only redirect if we're not already on the login page
-                if (window.location.pathname !== '/signin' && window.location.pathname !== '/signup') {
+                // Only redirect if we're not already on auth-related pages
+                const authPages = ['/signin', '/signup', '/forgot-password', '/reset-password'];
+                if (!authPages.includes(window.location.pathname)) {
                     window.location.href = '/signin';
                 }
                 return Promise.reject(refreshError);

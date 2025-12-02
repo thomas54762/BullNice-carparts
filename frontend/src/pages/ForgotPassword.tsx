@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { InputField } from '../components/InputField';
+import { authService } from '../services/authService';
 import { getErrorMessage } from '../utils/api';
 
 export const ForgotPassword: React.FC = () => {
@@ -16,9 +17,7 @@ export const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      // Note: Backend needs to implement password reset endpoint
-      // For now, we'll show a message that this feature is not yet implemented
-      // await api.post('/accounts/password-reset/', { email });
+      await authService.requestPasswordReset(email);
       setSubmitted(true);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -41,11 +40,7 @@ export const ForgotPassword: React.FC = () => {
               Check your email
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              {email ? (
-                <>We've sent a password reset link to {email}</>
-              ) : (
-                <>Password reset functionality is coming soon. Please contact support for assistance.</>
-              )}
+              We've sent a password reset link to your email address {email}. Please check your email (and spam folder) for instructions.
             </p>
             <div className="mt-6">
               <Link

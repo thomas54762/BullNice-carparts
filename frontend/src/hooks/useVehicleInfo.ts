@@ -34,12 +34,7 @@ export const useVehicleInfo = (plate: string | null) => {
       }
     };
 
-    // Debounce the API call
-    const timeoutId = setTimeout(() => {
-      fetchVehicleInfo();
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
+    fetchVehicleInfo();
   }, [plate]);
 
   return { vehicleInfo, loading, error };

@@ -142,6 +142,54 @@ class AuthService {
     }
 
     /**
+     * Change user password
+     */
+    async changePassword(data: { current_password: string; new_password: string }): Promise<{ message: string }> {
+        try {
+            const response = await api.post<{ message: string }>('/accounts/change-password/', data);
+            return response.data;
+        } catch (error) {
+            const fieldErrors = getFieldErrors(error);
+            if (Object.keys(fieldErrors).length > 0) {
+                throw fieldErrors;
+            }
+            throw new Error(getErrorMessage(error));
+        }
+    }
+
+    /**
+     * Request password reset
+     */
+    async requestPasswordReset(email: string): Promise<{ message: string }> {
+        try {
+            const response = await api.post<{ message: string }>('/accounts/password-reset/', { email });
+            return response.data;
+        } catch (error) {
+            const fieldErrors = getFieldErrors(error);
+            if (Object.keys(fieldErrors).length > 0) {
+                throw fieldErrors;
+            }
+            throw new Error(getErrorMessage(error));
+        }
+    }
+
+    /**
+     * Confirm password reset
+     */
+    async confirmPasswordReset(data: { token: string; new_password: string }): Promise<{ message: string }> {
+        try {
+            const response = await api.post<{ message: string }>('/accounts/password-reset/confirm/', data);
+            return response.data;
+        } catch (error) {
+            const fieldErrors = getFieldErrors(error);
+            if (Object.keys(fieldErrors).length > 0) {
+                throw fieldErrors;
+            }
+            throw new Error(getErrorMessage(error));
+        }
+    }
+
+    /**
      * Check if user is authenticated by trying to get profile
      */
     async checkAuth(): Promise<boolean> {

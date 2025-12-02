@@ -24,6 +24,7 @@ export const ProfileSettings: React.FC = () => {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Load user data
   useEffect(() => {
@@ -80,46 +81,44 @@ export const ProfileSettings: React.FC = () => {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
+    setPasswordMessage(null);
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setMessage({ type: 'error', text: 'New passwords do not match' });
+      setPasswordMessage({ type: 'error', text: 'New passwords do not match' });
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters' });
+      setPasswordMessage({ type: 'error', text: 'Password must be at least 8 characters' });
       return;
     }
 
     setPasswordSaving(true);
 
     try {
-      // Note: Backend needs to implement password change endpoint
-      // For now, show a message that this feature is not yet implemented
-      setMessage({
-        type: 'error',
-        text: 'Password change functionality is not yet implemented. Please contact support.',
+      await authService.changePassword({
+        current_password: passwordForm.currentPassword,
+        new_password: passwordForm.newPassword,
       });
-      // await authService.changePassword({
-      //   current_password: passwordForm.currentPassword,
-      //   new_password: passwordForm.newPassword,
-      // });
-    } catch (error) {
-      const fieldErrors = getFieldErrors(error);
-      if (Object.keys(fieldErrors).length > 0) {
-        const errorMessages = Object.values(fieldErrors).flat();
-        setMessage({ type: 'error', text: errorMessages.join(', ') });
-      } else {
-        setMessage({ type: 'error', text: getErrorMessage(error) });
-      }
-    } finally {
-      setPasswordSaving(false);
+      setPasswordMessage({
+        type: 'success',
+        text: 'Password changed successfully.',
+      });
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       });
+    } catch (error) {
+      const fieldErrors = getFieldErrors(error);
+      if (Object.keys(fieldErrors).length > 0) {
+        const errorMessages = Object.values(fieldErrors).flat();
+        setPasswordMessage({ type: 'error', text: errorMessages.join(', ') });
+      } else {
+        setPasswordMessage({ type: 'error', text: getErrorMessage(error) });
+      }
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -194,6 +193,15 @@ export const ProfileSettings: React.FC = () => {
         {/* Change Password */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+
+          {passwordMessage && (
+            <div className={`mb-4 p-3 rounded ${passwordMessage.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700'
+              }`}>
+              {passwordMessage.text}
+            </div>
+          )}
 
           <form onSubmit={handleChangePassword} className="space-y-4">
             <InputField
