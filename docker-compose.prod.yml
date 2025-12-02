@@ -35,7 +35,7 @@ services:
     image: nginx:alpine
     container_name: bullnice-nginx
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - frontend_build:/usr/share/nginx/html
