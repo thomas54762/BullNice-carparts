@@ -39,6 +39,8 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - frontend_build:/usr/share/nginx/html
+      - certbot_www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
     ports:
       - "80:80"
       - "443:443"
