@@ -200,21 +200,29 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = os.getenv(
+cors_origins = os.getenv(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:4173"
-).split(",")
+)
+CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins.split(",") if o.strip()]
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = os.getenv(
+csrf_origins = os.getenv(
     "CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://localhost:4173"
-).split(",")
+)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins.split(",") if o.strip()]
 
-# Session Cookie Settings
-SESSION_COOKIE_SECURE = os.getenv("SECURE_SSL_REDIRECT", "False").lower() == "true"
-CSRF_COOKIE_SECURE = os.getenv("SECURE_SSL_REDIRECT", "False").lower() == "true"
+# Security Settings
+secure_ssl = os.getenv("SECURE_SSL_REDIRECT", "False")
+USE_SECURE = secure_ssl in ("True", "true", "1", "yes", "on")
+
+SESSION_COOKIE_SECURE = USE_SECURE
+CSRF_COOKIE_SECURE = USE_SECURE
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+
+if USE_SECURE:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # API Documentation Settings (drf-spectacular)
 SPECTACULAR_SETTINGS = {
