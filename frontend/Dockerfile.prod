@@ -2,13 +2,20 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Accept build argument for API URL
+ARG VITE_API_URL=https://demo.bullnice.tech/api
+
+# Make it available as environment variable during build
+ENV VITE_API_URL=${VITE_API_URL}
+
 COPY package*.json ./
 RUN npm ci
 
 COPY . .
+
+# Build with the environment variable
 RUN npm run build
 
 # The build output will be in /app/dist
 # This will be shared via Docker volume to nginx container
 CMD ["echo", "Frontend build complete"]
-
