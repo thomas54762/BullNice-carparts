@@ -30,9 +30,11 @@ class PartService:
                     "car_model_type": car_model_type,
                     "car_model": car_model,
                 },
+                timeout=10,
             )
             return part_info.json()
-        except Exception:
+        except Exception as e:
+            print(f"Error getting part info: {e}")
             return None
 
     @staticmethod
