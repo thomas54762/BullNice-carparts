@@ -205,6 +205,17 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://localhost:4173"
+).split(",")
+
+# Session Cookie Settings
+SESSION_COOKIE_SECURE = os.getenv("SECURE_SSL_REDIRECT", "False").lower() == "true"
+CSRF_COOKIE_SECURE = os.getenv("SECURE_SSL_REDIRECT", "False").lower() == "true"
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
 # API Documentation Settings (drf-spectacular)
 SPECTACULAR_SETTINGS = {
     "TITLE": "BullNice Car Parts API",
