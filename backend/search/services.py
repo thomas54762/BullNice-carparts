@@ -30,7 +30,7 @@ class PartService:
                     "car_model_type": car_model_type,
                     "car_model": car_model,
                 },
-                timeout=10,
+                timeout=500,
             )
             return part_info.json()
         except Exception as e:
