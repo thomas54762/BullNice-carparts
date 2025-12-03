@@ -56,9 +56,9 @@ export const LicensePlateSearch: React.FC = () => {
 
     if (
       !vehicleInfo ||
-      !vehicleInfo.car_type ||
-      !vehicleInfo.car_model_type ||
-      !vehicleInfo.model
+      !vehicleInfo.brand ||
+      !vehicleInfo.model ||
+      !vehicleInfo.car_type
     ) {
       setPartInfoLoading(false);
       setPartInfoError('Vehicle details are still loading. Please wait and try again.');
@@ -69,9 +69,9 @@ export const LicensePlateSearch: React.FC = () => {
       const partInfo = await vehicleService.getPartInfo(
         licensePlate,
         partName,
-        vehicleInfo.car_type,
-        vehicleInfo.car_model_type,
+        vehicleInfo.brand,
         vehicleInfo.model,
+        vehicleInfo.car_type,
       );
       setPartInfoLoading(false);
 
@@ -203,8 +203,8 @@ export const LicensePlateSearch: React.FC = () => {
                     <span className="ml-2 font-medium text-gray-900">{vehicleInfo.buildYear}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Model Type:</span>
-                    <span className="ml-2 font-medium text-gray-900">{vehicleInfo.car_model_type}</span>
+                    <span className="text-gray-600">Fuel Type:</span>
+                    <span className="ml-2 font-medium text-gray-900">{vehicleInfo.fuelType}</span>
                   </div>
                   <div>
                     <span className="text-gray-600">Car Type:</span>
