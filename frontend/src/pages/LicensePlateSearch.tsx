@@ -54,8 +54,25 @@ export const LicensePlateSearch: React.FC = () => {
     setCategoryDataLoading(false);
     setPartInfoLoading(true);
 
+    if (
+      !vehicleInfo ||
+      !vehicleInfo.car_type ||
+      !vehicleInfo.car_model_type ||
+      !vehicleInfo.model
+    ) {
+      setPartInfoLoading(false);
+      setPartInfoError('Vehicle details are still loading. Please wait and try again.');
+      return;
+    }
+
     try {
-      const partInfo = await vehicleService.getPartInfo(licensePlate, partName);
+      const partInfo = await vehicleService.getPartInfo(
+        licensePlate,
+        partName,
+        vehicleInfo.car_type,
+        vehicleInfo.car_model_type,
+        vehicleInfo.model,
+      );
       setPartInfoLoading(false);
 
       if (partInfo) {
@@ -64,7 +81,7 @@ export const LicensePlateSearch: React.FC = () => {
           setCategoryMessage(partInfo.message || 'Please select a category');
           setSessionId(partInfo.sessionId || null);
           setShowCategorySelection(true);
-          return; // Don't navigate yet, wait for category selection
+          return;
         } else {
           // If flag is 'success' or other, display the data directly
           // Data will be displayed in the component based on partInfo.data
@@ -185,10 +202,16 @@ export const LicensePlateSearch: React.FC = () => {
                     <span className="text-gray-600">Year:</span>
                     <span className="ml-2 font-medium text-gray-900">{vehicleInfo.buildYear}</span>
                   </div>
-                  {/* <div>
-                    <span className="text-gray-600">Fuel:</span>
-                    <span className="ml-2 font-medium text-gray-900">{vehicleInfo.fuelType}</span>
-                  </div> */}
+                  <div>
+                    <span className="text-gray-600">Model Type:</span>
+                    <span className="ml-2 font-medium text-gray-900">{vehicleInfo.car_model_type}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Car Type:</span>
+                    <span className="ml-2 font-medium text-gray-900">{vehicleInfo.car_type}</span>
+                  </div>
+
+
                 </div>
               </div>
             )}

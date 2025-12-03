@@ -42,43 +42,56 @@ class PartsSearchView(APIView):
     def post(self, request):
         license_plate = request.data.get("license_plate")
         part_name = request.data.get("part_name")
-        if not license_plate or not part_name:
+        car_type = request.data.get("car_type")
+        car_model_type = request.data.get("car_model_type")
+        car_model = request.data.get("car_model")
+        if (
+            not license_plate
+            or not part_name
+            or not car_type
+            or not car_model_type
+            or not car_model
+        ):
             return Response(
-                {"error": "Plate and part name are required"},
+                {
+                    "error": "Plate, part name, car type, car model type and car model are required"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            part_info = PartService.get_part_info(license_plate, part_name)
-            if part_info:
-                if isinstance(part_info, list) and len(part_info) > 1:
-                    categories = [key for p in part_info for key in p.keys()]
-                    # Store the full part_info response and get session ID
-                    session_id = PartService.store_part_info(part_info)
+            part_info = PartService.get_part_info(
+                license_plate, part_name, car_type, car_model_type, car_model
+            )
+            normalized_part_info = PartService.normalize_part_info_response(part_info)
 
-                    return Response(
-                        {
-                            "message": "Please select the approrpiate category for the given part",
-                            "categories": categories,
-                            "flag": "select_category",
-                            "sessionId": session_id,
-                        },
-                        status=status.HTTP_200_OK,
-                    )
-                else:
-                    # Return the part info directly if it's a single result or not a list
-                    return Response(
-                        {
-                            "message": "Part information retrieved successfully",
-                            "data": part_info,
-                            "flag": "success",
-                        },
-                        status=status.HTTP_200_OK,
-                    )
-            else:
+            if not normalized_part_info:
                 return Response(
                     {"error": "No part information found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
+
+            categories = list(normalized_part_info.keys())
+
+            if len(categories) > 1:
+                session_id = PartService.store_part_info(normalized_part_info)
+                return Response(
+                    {
+                        "message": "Please select the appropriate category for the given part",
+                        "categories": categories,
+                        "flag": "select_category",
+                        "sessionId": session_id,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                {
+                    "message": "Part information retrieved successfully",
+                    "data": normalized_part_info,
+                    "flag": "success",
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
             return Response(

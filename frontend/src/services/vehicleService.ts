@@ -8,6 +8,8 @@ export interface VehicleInfo {
   buildYear: number;
   color: string;
   fuelType: string;
+  car_type: string;
+  car_model_type: string;
 }
 
 export interface PartInfo {
@@ -35,16 +37,21 @@ export const vehicleService = {
         buildYear: new Date(data.datum_eerste_toelating_dt).getFullYear(),
         color: data.eerste_kleur,
         fuelType: data.brandstof,
+        car_type: data.voertuigsoort,
+        car_model_type: data.uitvoering || data.variant
       };
     } catch (error) {
       return null;
     }
   },
-  async getPartInfo(licensePlate: string, partName: string): Promise<PartInfo | null> {
+  async getPartInfo(licensePlate: string, partName: string, carType: string, carModelType: string, carModel: string): Promise<PartInfo | null> {
     try {
       const response = await api.post("/search/parts-search/", {
         license_plate: licensePlate,
         part_name: partName,
+        car_type: carType,
+        car_model_type: carModelType,
+        car_model: carModel,
       });
 
       if (response.data) {
