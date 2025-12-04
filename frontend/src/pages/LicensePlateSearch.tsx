@@ -37,7 +37,7 @@ export const LicensePlateSearch: React.FC = () => {
     // Clear old errors and set processing message
     setErrors({});
     setPartInfoError(null);
-    setProcessingMessage("We're processing your request and will be ready in 2min at the results");
+    // setProcessingMessage("We're processing your request and will be ready in 2min at the results");
     setPartInfoLoading(true);
 
     if (
@@ -61,6 +61,7 @@ export const LicensePlateSearch: React.FC = () => {
         vehicleInfo.car_type,
       );
       setPartInfoLoading(false);
+      setProcessingMessage("We're processing your request and will be ready in 2 minutes at the results page.");
 
       if (!partInfo) {
         setProcessingMessage('');
