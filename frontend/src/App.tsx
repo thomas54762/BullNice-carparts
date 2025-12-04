@@ -5,6 +5,8 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { LicensePlateSearch } from './pages/LicensePlateSearch';
 import { ProfileSettings } from './pages/ProfileSettings';
 import { ResetPassword } from './pages/ResetPassword';
+import { ResultDetail } from './pages/ResultDetail';
+import { ResultsList } from './pages/ResultsList';
 import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
 
@@ -23,6 +25,8 @@ function App() {
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<Navigate to="/search" replace />} />
             <Route path="search" element={<LicensePlateSearch />} />
+            <Route path="results" element={<ResultsList />} />
+            <Route path="results/:searchResultId" element={<ResultDetail />} />
             <Route path="profile" element={<ProfileSettings />} />
           </Route>
 

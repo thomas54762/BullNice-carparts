@@ -10,16 +10,9 @@ export const LicensePlateSearch: React.FC = () => {
   const [licensePlate, setLicensePlate] = useState('');
   const [partName, setPartName] = useState('');
   const [errors, setErrors] = useState<{ plate?: string; part?: string }>({});
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showCategorySelection, setShowCategorySelection] = useState(false);
-  const [categoryMessage, setCategoryMessage] = useState<string>('');
   const [partInfoLoading, setPartInfoLoading] = useState(false);
   const [partInfoError, setPartInfoError] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [categoryLinks, setCategoryLinks] = useState<string[]>([]);
-  const [showLinks, setShowLinks] = useState(false);
-  const [categoryDataLoading, setCategoryDataLoading] = useState(false);
+  const [processingMessage, setProcessingMessage] = useState<string>('');
 
   const { vehicleInfo, loading: vehicleLoading, error: vehicleError } = useVehicleInfo(
     licensePlate.length >= 3 ? licensePlate : null
@@ -41,17 +34,10 @@ export const LicensePlateSearch: React.FC = () => {
       return;
     }
 
-    // Clear all old data when starting a new search
+    // Clear old errors and set processing message
     setErrors({});
-    setSelectedCategory(null);
-    setShowCategorySelection(false);
     setPartInfoError(null);
-    setCategories([]);
-    setCategoryMessage('');
-    setSessionId(null);
-    setCategoryLinks([]);
-    setShowLinks(false);
-    setCategoryDataLoading(false);
+    setProcessingMessage("We're processing your request and will be ready in 2min at the results");
     setPartInfoLoading(true);
 
     if (
@@ -61,6 +47,7 @@ export const LicensePlateSearch: React.FC = () => {
       !vehicleInfo.car_type
     ) {
       setPartInfoLoading(false);
+      setProcessingMessage('');
       setPartInfoError('Vehicle details are still loading. Please wait and try again.');
       return;
     }
@@ -75,68 +62,22 @@ export const LicensePlateSearch: React.FC = () => {
       );
       setPartInfoLoading(false);
 
-      if (partInfo) {
-        if (partInfo.flag === 'select_category') {
-          setCategories(partInfo.categories || []);
-          setCategoryMessage(partInfo.message || 'Please select a category');
-          setSessionId(partInfo.sessionId || null);
-          setShowCategorySelection(true);
-          return;
-        } else {
-          // If flag is 'success' or other, display the data directly
-          // Data will be displayed in the component based on partInfo.data
-          if (partInfo.data) {
-            // Handle single category result - extract links if available
-            const dataKeys = Object.keys(partInfo.data);
-            if (dataKeys.length > 0) {
-              const firstCategory = dataKeys[0];
-              const links = partInfo.data[firstCategory];
-              if (Array.isArray(links)) {
-                setCategoryLinks(links);
-                setSelectedCategory(firstCategory);
-                setShowLinks(true);
-              }
-            }
-          }
-        }
-      } else {
-        setPartInfoError('No part information found. Please try again.');
+      if (!partInfo) {
+        setProcessingMessage('');
+        setPartInfoError('Request failed. Please try again.');
+        return;
+      }
+
+      // Optionally surface backend confirmation message, but keep main processing message
+      if (partInfo.message) {
+        setPartInfoError(null);
       }
     } catch (error: any) {
       setPartInfoLoading(false);
-      // Use specific error message if available, otherwise show generic message
-      const errorMessage = error?.message || 'Failed to fetch part information. Please try again.';
+      setProcessingMessage('');
+      const errorMessage = error?.message || 'Failed to send search request. Please try again.';
       setPartInfoError(errorMessage);
-      console.error('Error fetching part info:', error);
-    }
-  };
-
-  const handleCategorySelect = async (category: string) => {
-    setSelectedCategory(category);
-    setCategoryDataLoading(true);
-    setPartInfoError(null);
-
-    if (!sessionId) {
-      setPartInfoError('Session expired. Please search again.');
-      setCategoryDataLoading(false);
-      return;
-    }
-
-    try {
-      const categoryData = await vehicleService.getCategoryData(sessionId, category);
-      setCategoryDataLoading(false);
-
-      if (categoryData && categoryData.links) {
-        setCategoryLinks(categoryData.links);
-        setShowLinks(true);
-        setShowCategorySelection(false);
-      } else {
-        setPartInfoError('Failed to retrieve links for the selected category. Please try again.');
-      }
-    } catch (error) {
-      setCategoryDataLoading(false);
-      setPartInfoError('Failed to fetch category data. Please try again.');
-      console.error('Error fetching category data:', error);
+      console.error('Error triggering search:', error);
     }
   };
 
@@ -225,13 +166,6 @@ export const LicensePlateSearch: React.FC = () => {
               onChange={(e) => {
                 setPartName(e.target.value);
                 setErrors({ ...errors, part: undefined });
-                // Reset category selection when part name changes
-                setShowCategorySelection(false);
-                setSelectedCategory(null);
-                setCategories([]);
-                setSessionId(null);
-                setCategoryLinks([]);
-                setShowLinks(false);
               }}
               error={errors.part}
               helperText="Enter the name of the part you're looking for"
@@ -250,66 +184,9 @@ export const LicensePlateSearch: React.FC = () => {
             </div>
           )}
 
-          {categoryDataLoading && (
-            <div className="mt-2">
-              <LoadingSkeleton lines={2} />
-            </div>
-          )}
-
-          {showCategorySelection && categories.length > 0 && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 mb-3">
-                {categoryMessage}
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {categories.map((category) => (
-                  <Button
-                    key={category}
-                    onClick={() => handleCategorySelect(category)}
-                    variant={selectedCategory === category ? 'primary' : 'outline'}
-                    className="text-sm"
-                    disabled={categoryDataLoading}
-                  >
-                    {category}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {showLinks && categoryLinks.length > 0 && (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm font-medium text-green-900 mb-3">
-                Found {categoryLinks.length} link{categoryLinks.length !== 1 ? 's' : ''} for {selectedCategory}:
-              </p>
-              <div className="space-y-2">
-                {categoryLinks.map((link, index) => (
-                  <a
-                    key={index}
-                    href={link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block p-3 bg-white border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700 break-all">{link}</span>
-                      <svg
-                        className="w-5 h-5 text-green-600 ml-2 flex-shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
-                      </svg>
-                    </div>
-                  </a>
-                ))}
-              </div>
+          {processingMessage && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
+              {processingMessage}
             </div>
           )}
 
@@ -328,15 +205,9 @@ export const LicensePlateSearch: React.FC = () => {
                 setLicensePlate('');
                 setPartName('');
                 setErrors({});
-                setCategories([]);
-                setSelectedCategory(null);
-                setShowCategorySelection(false);
                 setPartInfoError(null);
                 setPartInfoLoading(false);
-                setSessionId(null);
-                setCategoryLinks([]);
-                setShowLinks(false);
-                setCategoryDataLoading(false);
+                setProcessingMessage('');
               }}
             >
               Clear

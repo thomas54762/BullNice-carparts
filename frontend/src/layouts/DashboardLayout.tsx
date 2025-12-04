@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
-import { Sidebar } from '../components/Sidebar';
 import { ProtectedRoute } from '../components/ProtectedRoute';
+import { Sidebar } from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
 
 const sidebarItems = [
@@ -12,6 +12,20 @@ const sidebarItems = [
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    ),
+  },
+  {
+    path: '/results',
+    label: 'Results',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 17v-6a2 2 0 012-2h8M5 7h14M5 11h4m-4 4h4"
+        />
       </svg>
     ),
   },
@@ -42,9 +56,9 @@ export const DashboardLayout: React.FC = () => {
             user={
               user
                 ? {
-                    name: userDisplayName,
-                    email: user.email,
-                  }
+                  name: userDisplayName,
+                  email: user.email,
+                }
                 : undefined
             }
             onLogout={logout}

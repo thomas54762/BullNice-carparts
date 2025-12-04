@@ -15,10 +15,27 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
   return (
     <nav className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-8">
           <Link to="/dashboard" className="text-xl font-bold text-gray-900">
             BullNice
           </Link>
+
+          {user && (
+            <div className="hidden md:flex items-center gap-4">
+              <Link
+                to="/search"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Search
+              </Link>
+              <Link
+                to="/results"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Results
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-4">

@@ -1,9 +1,12 @@
+from django.db.models import Count, Max
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
 from search.services import PartService
+
+from .models import SearchResult
 
 
 class IPRateThrottle(SimpleRateThrottle):
@@ -59,38 +62,16 @@ class PartsSearchView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            part_info = PartService.get_part_info(
+            # Trigger async webhook; ignore payload structure and treat it as confirmation only
+            PartService.get_part_info(
                 license_plate, part_name, car_type, car_model_type, car_model
             )
-            normalized_part_info = PartService.normalize_part_info_response(part_info)
-
-            if not normalized_part_info:
-                return Response(
-                    {"error": "No part information found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            categories = list(normalized_part_info.keys())
-
-            if len(categories) > 1:
-                session_id = PartService.store_part_info(normalized_part_info)
-                return Response(
-                    {
-                        "message": "Please select the appropriate category for the given part",
-                        "categories": categories,
-                        "flag": "select_category",
-                        "sessionId": session_id,
-                    },
-                    status=status.HTTP_200_OK,
-                )
 
             return Response(
                 {
-                    "message": "Part information retrieved successfully",
-                    "data": normalized_part_info,
-                    "flag": "success",
+                    "message": "Request received. We're processing your request and results will be available soon on the Results page."
                 },
-                status=status.HTTP_200_OK,
+                status=status.HTTP_202_ACCEPTED,
             )
 
         except Exception as e:
@@ -100,51 +81,53 @@ class PartsSearchView(APIView):
             )
 
 
-class CategoryDataView(APIView):
-    throttle_classes = [
-        IPRateThrottle
-    ]  # Less strict throttling since it doesn't call webhook
+class SearchResultListView(APIView):
+    """
+    Returns a list of unique search_result_id groups with basic aggregation data.
 
-    def post(self, request):
-        session_id = request.data.get("session_id")
-        category = request.data.get("category")
+    Response example:
+    [
+        {
+            "search_result_id": 1,
+            "count": 5,
+            "latest_created_at": "2025-01-01T12:00:00Z"
+        },
+        ...
+    ]
+    """
 
-        if not session_id or not category:
-            return Response(
-                {"error": "Session ID and category are required"},
-                status=status.HTTP_400_BAD_REQUEST,
+    def get(self, request):
+        groups = (
+            SearchResult.objects.values("search_result_id")
+            .annotate(
+                count=Count("id"),
+                latest_created_at=Max("created_at"),
             )
+            .order_by("-latest_created_at")
+        )
+        return Response(list(groups), status=status.HTTP_200_OK)
 
-        try:
-            # Retrieve stored part_info from cache
-            part_info = PartService.get_stored_part_info(session_id)
 
-            if part_info is None:
-                return Response(
-                    {"error": "Session expired or invalid session ID"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+class SearchResultDetailView(APIView):
+    """
+    Returns all website-level results for a given search_result_id.
 
-            # Extract links for the specified category
-            links = PartService.get_category_links(part_info, category)
+    Response example:
+    [
+        {
+            "website_search_id": 1,
+            "title": "...",
+            "price": "0.000",
+            "url": "https://..."
+        },
+        ...
+    ]
+    """
 
-            if links is None:
-                return Response(
-                    {"error": f"Category '{category}' not found in stored data"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            return Response(
-                {
-                    "message": "Category data retrieved successfully",
-                    "category": category,
-                    "links": links,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        except Exception as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+    def get(self, request, search_result_id: int):
+        results = (
+            SearchResult.objects.filter(search_result_id=search_result_id)
+            .order_by("website_search_id")
+            .values("website_search_id", "title", "price", "url")
+        )
+        return Response(list(results), status=status.HTTP_200_OK)

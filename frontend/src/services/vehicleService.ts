@@ -13,17 +13,8 @@ export interface VehicleInfo {
 
 export interface PartInfo {
   message: string;
-  categories?: string[];
-  data?: Record<string, string[]>;
-  flag: string;
-  sessionId?: string;
 }
 
-export interface CategoryData {
-  message: string;
-  category: string;
-  links: string[];
-}
 export const vehicleService = {
   async getVehicleInfo(plate: string): Promise<VehicleInfo | null> {
     try {
@@ -63,23 +54,6 @@ export const vehicleService = {
         throw new Error('Too many requests. Please wait a moment before searching again.');
       }
       throw error;
-    }
-  },
-  async getCategoryData(sessionId: string, category: string): Promise<CategoryData | null> {
-    try {
-      const response = await api.post("/search/category-data/", {
-        session_id: sessionId,
-        category: category,
-      });
-
-      if (response.data) {
-        return response.data as CategoryData;
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Error fetching category data:', error);
-      return null;
     }
   },
 };
