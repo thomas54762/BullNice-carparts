@@ -88,13 +88,17 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "bullnice"),
-        "USER": os.getenv("POSTGRES_USER", "bullnice"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "bullnice123"),
-        "HOST": os.getenv("POSTGRES_HOST", "db"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+  "default": {
+          "ENGINE": "mssql",
+          "NAME": "BullNice",
+          "USER": "BullNice",
+          "PASSWORD": "}}+h\yF;ynL?T5'a:[(as4DQNxEx6'iqYfDJJKjv!",
+          "HOST": "54.37.229.228",
+          "PORT": "1433",
+          "OPTIONS": {
+              "driver": "ODBC Driver 18 for SQL Server",
+              "extra_params": "Encrypt=no;TrustServerCertificate=yes;"   
+          },
     }
 }
 

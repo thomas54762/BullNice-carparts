@@ -11,6 +11,13 @@ class SearchResult(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        
+        constraints = [
+            models.UniqueConstraint(
+                fields=['search_result_id', 'website_search_id'],
+                name='unique_search_website'
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.search_result_id} - {self.website_search_id} - {self.title}"
