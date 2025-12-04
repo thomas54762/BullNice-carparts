@@ -172,11 +172,11 @@ export const LicensePlateSearch: React.FC = () => {
             />
           </div>
 
-          {partInfoLoading && (
+          {/* {partInfoLoading && (
             <div className="mt-2">
               <LoadingSkeleton lines={2} />
             </div>
-          )}
+          )} */}
 
           {partInfoError && (
             <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
