@@ -12,13 +12,12 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
-      - POSTGRES_DB=bullnice
-      - POSTGRES_USER=bullnice
-      - POSTGRES_PASSWORD=bullnice123
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-    depends_on:
-      - db
+
+      # MSSQL local instance
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
 
   frontend:
     build:
@@ -35,20 +34,3 @@ services:
       - NODE_ENV=development
     depends_on:
       - backend
-
-  db:
-    image: postgres:16-alpine
-    container_name: bullnice-db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=bullnice
-      - POSTGRES_USER=bullnice
-      - POSTGRES_PASSWORD=bullnice123
-    ports:
-      - "5433:5432"
-
-volumes:
-  postgres_data:
-
-

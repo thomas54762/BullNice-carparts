@@ -13,18 +13,18 @@ services:
     environment:
       - DEBUG=0
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - FRONTEND_URL=${FRONTEND_URL}
       - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT}
-    depends_on:
-      - db
+
+      # MSSQL CONFIG
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=1433
+      - DB_USER=BullNice
+      - DB_PASSWORD=}}+h\yF;y
+
     restart: unless-stopped
 
   frontend:
@@ -55,19 +55,7 @@ services:
       - frontend
     restart: unless-stopped
 
-  db:
-    image: postgres:16-alpine
-    container_name: bullnice-db-prod
-    volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    restart: unless-stopped
-
 volumes:
-  postgres_data_prod:
   static_volume:
   media_volume:
   frontend_build:
