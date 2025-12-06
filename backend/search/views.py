@@ -89,6 +89,7 @@ class SearchResultListView(APIView):
     [
         {
             "search_result_id": 1,
+            "search_keyword": "Brake Pads",
             "count": 5,
             "latest_created_at": "2025-01-01T12:00:00Z"
         },
@@ -100,6 +101,9 @@ class SearchResultListView(APIView):
         groups = (
             SearchResult.objects.values("search_result_id")
             .annotate(
+                search_keyword=Max(
+                    "search_keyword"
+                ),  # All results in a group have same keyword
                 count=Count("id"),
                 latest_created_at=Max("created_at"),
             )
@@ -113,21 +117,40 @@ class SearchResultDetailView(APIView):
     Returns all website-level results for a given search_result_id.
 
     Response example:
-    [
-        {
-            "website_search_id": 1,
-            "title": "...",
-            "price": "0.000",
-            "url": "https://..."
-        },
-        ...
-    ]
+    {
+        "search_keyword": "Brake Pads",
+        "items": [
+            {
+                "website_search_id": 1,
+                "title": "...",
+                "price": "0.000",
+                "url": "https://..."
+            },
+            ...
+        ]
+    }
     """
 
     def get(self, request, search_result_id: int):
-        results = (
-            SearchResult.objects.filter(search_result_id=search_result_id)
-            .order_by("website_search_id")
-            .values("website_search_id", "title", "price", "url")
+        results = SearchResult.objects.filter(
+            search_result_id=search_result_id
+        ).order_by("website_search_id")
+
+        if not results.exists():
+            return Response(
+                {"error": "No results found for this search_result_id"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Get search_keyword from first result (all should have same keyword)
+        search_keyword = results.first().search_keyword
+
+        items = results.values("website_search_id", "title", "price", "url")
+
+        return Response(
+            {
+                "search_keyword": search_keyword,
+                "items": list(items),
+            },
+            status=status.HTTP_200_OK,
         )
-        return Response(list(results), status=status.HTTP_200_OK)

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -20,9 +19,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/signin" replace />;
-  }
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/signin" replace />;
+  // }
 
   return <>{children}</>;
 };

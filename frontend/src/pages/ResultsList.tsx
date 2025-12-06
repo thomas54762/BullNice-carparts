@@ -31,7 +31,7 @@ export const ResultsList: React.FC = () => {
     <div>
       <PageHeader
         title="Results"
-        subtitle="Browse your past search results by search_result_id"
+        subtitle="Browse your past search results by search keyword"
       />
 
       <div className="bg-white rounded-lg shadow p-6">
@@ -67,7 +67,7 @@ export const ResultsList: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200 text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium text-gray-700">search_result_id</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-700">Search Keyword</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-700">Items</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-700">Latest</th>
                   <th className="px-4 py-2"></th>
@@ -81,7 +81,7 @@ export const ResultsList: React.FC = () => {
                         to={`/results/${group.search_result_id}`}
                         className="text-primary-600 hover:underline font-medium"
                       >
-                        {group.search_result_id}
+                        {group.search_keyword}
                       </Link>
                     </td>
                     <td className="px-4 py-2 text-gray-700">{group.count}</td>

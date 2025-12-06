@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { PageHeader } from '../components/PageHeader';
-import type { SearchResultItem } from '../services/resultsService';
+import type { SearchResultDetail } from '../services/resultsService';
 import { resultsService } from '../services/resultsService';
 
 
@@ -10,7 +10,7 @@ export const ResultDetail: React.FC = () => {
   const { searchResultId } = useParams<{ searchResultId: string }>();
   const navigate = useNavigate();
 
-  const [items, setItems] = useState<SearchResultItem[]>([]);
+  const [resultDetail, setResultDetail] = useState<SearchResultDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,7 +33,7 @@ export const ResultDetail: React.FC = () => {
         setLoading(true);
         setError(null);
         const data = await resultsService.getSearchResultDetail(idNum);
-        setItems(data);
+        setResultDetail(data);
       } catch {
         setError('Failed to load result details. Please try again later.');
       } finally {
@@ -47,8 +47,8 @@ export const ResultDetail: React.FC = () => {
   return (
     <div>
       <PageHeader
-        title={`Result: ${searchResultId ?? ''}`}
-        subtitle="Detailed website results for the selected search_result_id"
+        title={resultDetail ? `Result: ${resultDetail.search_keyword}` : `Result: ${searchResultId ?? ''}`}
+        subtitle="Detailed website results for the selected search"
       />
 
       <div className="bg-white rounded-lg shadow p-6">
@@ -72,13 +72,13 @@ export const ResultDetail: React.FC = () => {
           </div>
         )}
 
-        {!loading && !error && items.length === 0 && (
+        {!loading && !error && resultDetail && resultDetail.items.length === 0 && (
           <div className="text-sm text-gray-600">
-            No website results found for this search_result_id.
+            No website results found for this search.
           </div>
         )}
 
-        {!loading && !error && items.length > 0 && (
+        {!loading && !error && resultDetail && resultDetail.items.length > 0 && (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-sm">
               <thead className="bg-gray-50">
@@ -91,7 +91,7 @@ export const ResultDetail: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {items.map((item) => (
+                {resultDetail.items.map((item) => (
                   <tr key={item.website_search_id}>
                     <td className="px-4 py-2 font-medium text-gray-900">
                       {item.website_search_id}

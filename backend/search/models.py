@@ -4,6 +4,7 @@ from django.db import models
 class SearchResult(models.Model):
     search_result_id = models.BigIntegerField(db_index=True)
     website_search_id = models.BigIntegerField()
+    search_keyword = models.CharField(max_length=100)
     url = models.TextField()
     title = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=15, decimal_places=3)
@@ -11,11 +12,11 @@ class SearchResult(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        
+
         constraints = [
             models.UniqueConstraint(
-                fields=['search_result_id', 'website_search_id'],
-                name='unique_search_website'
+                fields=["search_result_id", "website_search_id"],
+                name="unique_search_website",
             )
         ]
 

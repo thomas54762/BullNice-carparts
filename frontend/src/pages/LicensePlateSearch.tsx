@@ -186,7 +186,7 @@ export const LicensePlateSearch: React.FC = () => {
           )}
 
           {processingMessage && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-900">
               {processingMessage}
             </div>
           )}

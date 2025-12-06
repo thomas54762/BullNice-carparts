@@ -16,9 +16,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ items }) => {
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-900">BullNice</h2>
-        <p className="text-sm text-gray-500">Carparts Finder</p>
+      <div className="m-2">
+        <Link to="/" className="flex items-center justify-center">
+          <img
+            src="/bullnice_logo.svg"
+            alt="BullNice"
+            className="h-16 mb-8 w-auto text-center"
+          />
+        </Link>
       </div>
 
       <nav className="px-4">
