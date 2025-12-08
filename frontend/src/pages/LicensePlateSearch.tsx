@@ -98,7 +98,8 @@ export const LicensePlateSearch: React.FC = () => {
               value={licensePlate}
               onChange={(e) => {
                 const rawValue = e.target.value;
-                const sanitizedValue = rawValue.replace(/[^A-Za-z0-9]/g, '');
+                const sanitizedValue = rawValue.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
 
                 // If user tried to enter "-" or any special character, show a tooltip-style error
                 if (rawValue !== sanitizedValue) {
